@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import type { Movie } from "../../types/movie";
 import { fetchMovies } from "../../services/movieService";
+
+import SearchBar from "../SearchBar/SearchBar";
+import MovieGrid from "../MovieGrid/MovieGrid";
+import MovieModal from "../MovieModal/MovieModal";
+import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+
 import css from "./App.module.css";
-import { type Movie } from "../../types/movie";
 
 import ReactPaginateModule from "react-paginate";
 import type { ReactPaginateProps } from "react-paginate";
@@ -17,8 +24,9 @@ const ReactPaginate = (
 ).default;
 
 export default function App() {
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["movies", query, page],
@@ -26,33 +34,29 @@ export default function App() {
     enabled: !!query,
   });
 
-  const movies: Movie[] = data?.results || [];
-  const totalPages = data?.total_pages || 0;
+  const movies: Movie[] = data?.results ?? [];
+  const totalPages: number = data?.total_pages ?? 0;
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const input = form.elements.namedItem("query") as HTMLInputElement;
-    setQuery(input.value);
+  const handleSearch = (value: string) => {
+    setQuery(value);
     setPage(1);
-    form.reset();
   };
 
   return (
     <div>
-      <form onSubmit={handleSearch}>
-        <input name="query" placeholder="Search movies..." />
-        <button type="submit">Search</button>
-      </form>
+      <SearchBar onSubmit={handleSearch} />
 
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Error...</p>}
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage />}
 
-      <ul>
-        {movies.map((movie) => (
-          <li key={movie.id}>{movie.title}</li>
-        ))}
-      </ul>
+      <MovieGrid movies={movies} onSelect={setSelectedMovie} />
+
+      {selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+        />
+      )}
 
       {totalPages > 1 && (
         <ReactPaginate

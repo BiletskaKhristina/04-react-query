@@ -1,33 +1,24 @@
-import styles from './MovieGrid.module.css';
-import type { Movie } from '../../types/movie';
-import { posterUrl } from '../../services/movieService';
+import styles from "./MovieGrid.module.css";
+import type { Movie } from "../../types/movie";
+import { posterUrl } from "../../services/movieService";
 
-export interface MovieGridProps {
+interface Props {
   movies: Movie[];
   onSelect: (movie: Movie) => void;
 }
 
-export default function MovieGrid({ movies, onSelect }: MovieGridProps) {
+export default function MovieGrid({ movies, onSelect }: Props) {
   return (
     <ul className={styles.grid}>
-      {movies.map((m) => (
-        <li key={m.id}>
-          <div
-            className={styles.card}
-            role="button"
-            tabIndex={0}
-            onClick={() => onSelect(m)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') onSelect(m);
-            }}
-          >
+      {movies.map((movie) => (
+        <li key={movie.id}>
+          <div className={styles.card} onClick={() => onSelect(movie)}>
             <img
               className={styles.image}
-              src={posterUrl(m.poster_path, 'w500') || ''}
-              alt={m.title}
-              loading="lazy"
+              src={posterUrl(movie.poster_path)}
+              alt={movie.title}
             />
-            <h2 className={styles.title}>{m.title}</h2>
+            <h2 className={styles.title}>{movie.title}</h2>
           </div>
         </li>
       ))}
